@@ -7,23 +7,25 @@ const microTask = (function() {
 	if (typeof MutationObserver !== 'undefined') {
 		let counter = 1;
 		const textNode = document.createTextNode(counter);
-		const microTaskList = [];
+		let microTaskList = [];
 		let running = false;
 		const cb = () => {
-			if (running) {
-				return;
-			}
-			running = true;
-			while(microTaskList.length) {
-				const microT = microTaskList.shift();
+      const copyList = microTaskList.slice(0);
+      microTaskList = [];
+			running = false;
+			while(copyList.length) {
+				const microT = copyList.shift();
 				microT();
 			}
-			running = false;
 		};
 		const observer = new MutationObserver(cb);
 		observer.observe(textNode, { characterData: true });
 		timerFn = (fn) => {
 			microTaskList.push(fn);
+      if (running) {
+        return;
+      }
+      running = true;
 			counter = (counter + 1) % 2;
 			textNode.data = counter;
 		}
